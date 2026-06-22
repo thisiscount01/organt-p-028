@@ -1,0 +1,6 @@
+{
+  "name": "organt-p-028",
+  "version": "1.0.0",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

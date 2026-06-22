@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="KAMIS 실데이터 기반 AI 농산물 가격 예측. 배추·양파·마늘·대파 등 주요 품목의 7일 가격 전망과 구매 타이밍을 분석합니다." />
+  <meta name="theme-color" content="#1a9e5c" />
+  <title>장보기 어드바이저 — AI 농산물 가격 예측</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js — 로컬 번들 (CDN 폴백 가능) -->
+  <script src="chart.umd.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand" aria-label="장보기 어드바이저 홈으로">
+        <span class="brand-icon" aria-hidden="true">🌾</span>
+        <div class="brand-text">
+          <span class="brand-name">장보기 어드바이저</span>
+          <span class="brand-sub">AI 농산물 가격 예측 · KAMIS 실데이터</span>
+        </div>
+      </a>
+      <div class="header-meta">
+        <div class="live-badge" aria-label="실시간 데이터">
+          <span class="live-dot" aria-hidden="true"></span>
+          실시간
+        </div>
+        <div class="updated-info">
+          <span id="updated-at" aria-live="polite">—</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════ ANOMALY BANNER ═══════════════ -->
+  <div class="anomaly-banner" id="anomaly-banner" role="alert" aria-live="assertive" hidden>
+    <div class="container anomaly-inner">
+      <span class="anomaly-pulse" aria-hidden="true"></span>
+      <span class="anomaly-icon" aria-hidden="true">🚨</span>
+      <span class="anomaly-text" id="anomaly-text">이상 가격이 감지되었습니다</span>
+      <button class="anomaly-close" id="anomaly-close" type="button" aria-label="알림 닫기">✕</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+    <div class="container">
+
+      <!-- ── 품목 선택 탭 ── -->
+      <section class="item-selector-section" aria-label="농산물 품목 선택">
+        <div class="item-tabs-wrap">
+          <div class="item-tabs" id="item-tabs" role="tablist" aria-label="농산물 품목">
+            <!-- skeleton: 탭 API 로딩 전 -->
+            <div class="item-tabs-skeleton" id="item-tabs-skeleton" aria-hidden="true">
+              <div class="sk-tab"></div>
+              <div class="sk-tab"></div>
+              <div class="sk-tab"></div>
+              <div class="sk-tab"></div>
+              <div class="sk-tab"></div>
+              <div class="sk-tab"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── 예측 결과 영역 ── -->
+      <section class="prediction-section" aria-label="가격 예측 결과">
+
+        <!-- SKELETON STATE -->
+        <div class="pred-skeleton" id="pred-skeleton" aria-hidden="true">
+          <div class="sk-row">
+            <div class="sk-card sk-price-card"></div>
+            <div class="sk-stat-col">
+              <div class="sk-card sk-stat"></div>
+              <div class="sk-card sk-stat"></div>
+              <div class="sk-card sk-stat"></div>
+              <div class="sk-card sk-stat"></div>
+            </div>
+          </div>
+          <div class="sk-card sk-chart"></div>
+          <div class="sk-card sk-table"></div>
+        </div>
+
+        <!-- CONTENT STATE -->
+        <div class="pred-content" id="pred-content" hidden>
+
+          <!-- 상단 개요 행 -->
+          <div class="overview-row">
+
+            <!-- ★ 메인 가격 카드 ★ -->
+            <article class="price-card" id="price-card" data-timing="">
+              <div class="price-card-header">
+                <div class="item-identity">
+                  <span class="item-emoji" id="item-emoji" aria-hidden="true">🥬</span>
+                  <div class="item-meta">
+                    <h2 class="item-name" id="item-name">배추</h2>
+                    <span class="item-category badge-category" id="item-category">채소류</span>
+                  </div>
+                </div>
+                <!-- buy_timing 배지: data-timing 속성으로 색상 자동 전환 -->
+                <div class="timing-badge" id="timing-badge" role="status" aria-label="구매 타이밍">
+                  <span class="timing-icon" id="timing-icon" aria-hidden="true"></span>
+                  <span class="timing-label" id="timing-label">—</span>
+                </div>
+              </div>
+
+              <div class="price-body">
+                <div class="current-price-block">
+                  <span class="cprice-label">현재 가격</span>
+                  <div class="cprice-row">
+                    <span class="cprice-value" id="current-price" aria-live="polite">—</span>
+                    <span class="cprice-unit">원/kg</span>
+                  </div>
+                </div>
+
+                <div class="score-meter-block">
+                  <div class="score-meta-row">
+                    <span class="score-label">구매 타이밍 지수</span>
+                    <span class="score-num" id="score-num">—</span>
+                  </div>
+                  <div class="score-track"
+                       role="meter"
+                       aria-label="구매 타이밍 지수"
+                       aria-valuemin="0"
+                       aria-valuemax="100">
+                    <div class="score-fill" id="score-fill" style="width:0%"></div>
+                  </div>
+                  <div class="score-scale-row">
+                    <span>구매 자제</span>
+                    <span>최적 구매</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="timing-advice" id="timing-advice" aria-live="polite"></p>
+
+              <div class="price-card-footer">
+                <span class="mape-chip" id="mape-chip">
+                  <span aria-hidden="true">🎯</span>
+                  MAPE <strong id="mape-value">—</strong>
+                </span>
+                <span class="anomaly-chip" id="anomaly-chip" hidden>
+                  <span aria-hidden="true">⚠️</span>
+                  이상가격 감지
+                </span>
+              </div>
+            </article>
+
+            <!-- 통계 카드 4종 -->
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span class="stat-icon" aria-hidden="true">📈</span>
+                <span class="stat-label">7일 최고가</span>
+                <strong class="stat-value" id="stat-max">—</strong>
+                <span class="stat-unit">원</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon" aria-hidden="true">📉</span>
+                <span class="stat-label">7일 최저가</span>
+                <strong class="stat-value" id="stat-min">—</strong>
+                <span class="stat-unit">원</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon" aria-hidden="true">📊</span>
+                <span class="stat-label">7일 평균가</span>
+                <strong class="stat-value" id="stat-avg">—</strong>
+                <span class="stat-unit">원</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon" aria-hidden="true">🔮</span>
+                <span class="stat-label">신뢰 구간</span>
+                <strong class="stat-value stat-value-sm" id="stat-range">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- ★ 7일 예측 차트 ★ -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3 class="chart-title">
+                <span aria-hidden="true">📅</span> 7일 가격 예측 추이
+              </h3>
+              <div class="chart-legend" aria-label="차트 범례">
+                <span class="legend-item">
+                  <span class="legend-line-sw" aria-hidden="true"></span>
+                  예측 가격
+                </span>
+                <span class="legend-item">
+                  <span class="legend-band-sw" aria-hidden="true"></span>
+                  신뢰 구간
+                </span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="price-chart"
+                      role="img"
+                      aria-label="농산물 7일 가격 예측 라인 차트 — 신뢰 구간 음영 포함">
+              </canvas>
+            </div>
+          </div>
+
+          <!-- ★ 일별 예측 테이블 ★ -->
+          <div class="table-card">
+            <h3 class="table-title">
+              <span aria-hidden="true">📋</span> 일별 예측 상세
+            </h3>
+            <div class="table-scroll">
+              <table class="price-table" aria-label="일별 예측 가격 상세표">
+                <thead>
+                  <tr>
+                    <th scope="col">날짜</th>
+                    <th scope="col">예측가</th>
+                    <th scope="col">신뢰 하한</th>
+                    <th scope="col">신뢰 상한</th>
+                    <th scope="col">전일比</th>
+                  </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div class="error-state" id="error-state" hidden role="alert">
+          <span class="error-emoji" aria-hidden="true">⚠️</span>
+          <h3 class="error-title">데이터를 불러올 수 없습니다</h3>
+          <p class="error-desc" id="error-desc">서버에 연결할 수 없거나 일시적인 오류입니다.</p>
+          <button class="retry-btn" id="retry-btn" type="button">
+            <span aria-hidden="true">🔄</span> 다시 시도
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ── 서비스 정보 ── -->
+      <section class="info-section" aria-label="서비스 정보">
+        <div class="info-row">
+
+          <div class="info-card">
+            <h3 class="info-card-title">
+              <span aria-hidden="true">🤖</span> AI 모델 안내
+            </h3>
+            <p>KAMIS(농수산물유통공사 가격정보시스템) 실 데이터를 학습한
+              <strong>Prophet + LSTM 앙상블</strong> 모델이 7일 예측을 제공합니다.
+              품목별 계절성, 요일 패턴, 이상기후·수급 이벤트를 복합 분석하며
+              MAPE(평균절대백분율오차) 기준 정확도를 함께 표시합니다.</p>
+          </div>
+
+          <div class="info-card">
+            <h3 class="info-card-title">
+              <span aria-hidden="true">🛒</span> 구매 타이밍 기준
+            </h3>
+            <ul class="timing-guide" role="list">
+              <li class="timing-guide-item" data-timing="급등경보" role="listitem">
+                <span class="guide-swatch" aria-hidden="true"></span>
+                <span><strong>급등경보</strong> — 현재 가격이 비정상적으로 높습니다. 구매 자제 권장.</span>
+              </li>
+              <li class="timing-guide-item" data-timing="상승" role="listitem">
+                <span class="guide-swatch" aria-hidden="true"></span>
+                <span><strong>상승</strong> — 가격이 오를 전망입니다. 필요분만 구매하세요.</span>
+              </li>
+              <li class="timing-guide-item" data-timing="보합" role="listitem">
+                <span class="guide-swatch" aria-hidden="true"></span>
+                <span><strong>보합</strong> — 가격이 안정적입니다. 평소대로 구매하세요.</span>
+              </li>
+              <li class="timing-guide-item" data-timing="하락" role="listitem">
+                <span class="guide-swatch" aria-hidden="true"></span>
+                <span><strong>하락</strong> — 가격이 내릴 전망입니다. 분할 구매를 권장합니다.</span>
+              </li>
+              <li class="timing-guide-item" data-timing="급락경보" role="listitem">
+                <span class="guide-swatch" aria-hidden="true"></span>
+                <span><strong>급락경보</strong> — 가격이 급격히 낮아질 전망. 지금이 구매 최적기!</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-row">
+        <span class="footer-brand">
+          <span aria-hidden="true">🌾</span> 장보기 어드바이저
+        </span>
+        <div class="footer-meta">
+          <span>데이터: KAMIS(농수산물유통공사)</span>
+          <span aria-hidden="true">·</span>
+          <span>모델: Prophet + LSTM 앙상블</span>
+        </div>
+      </div>
+      <p class="footer-disclaimer">
+        본 서비스는 AI 예측 정보를 제공하며, 실제 구매 판단은 사용자 본인의 책임입니다.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

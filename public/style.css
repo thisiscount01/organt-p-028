@@ -1,0 +1,1087 @@
+/* ══════════════════════════════════════════════════════════
+   장보기 어드바이저 — Design System
+   oklch 퍼셉추얼 균등 컬러 + --clr-* / --tone-* 이중 네임스페이스
+   data-timing 단일 속성으로 5단계 시맨틱 색상 전환
+   ══════════════════════════════════════════════════════════ */
+
+/* ── 1. 토큰 정의 ─────────────────────────────────────── */
+:root {
+  /* 구조 토큰 (--clr-*): 레이아웃·표면·텍스트 */
+  --clr-bg:           oklch(97% 0.008 220);
+  --clr-surface:      oklch(100% 0 0);
+  --clr-surface-2:    oklch(96% 0.008 220);
+  --clr-surface-3:    oklch(93% 0.012 220);
+  --clr-border:       oklch(89% 0.010 220);
+  --clr-border-2:     oklch(82% 0.015 220);
+  --clr-text:         oklch(22% 0.025 250);
+  --clr-text-2:       oklch(42% 0.022 250);
+  --clr-text-3:       oklch(60% 0.016 250);
+  --clr-accent:       oklch(52% 0.18 145);   /* 브랜드 그린 */
+  --clr-accent-lt:    oklch(94% 0.05 145);
+  --clr-accent-dk:    oklch(42% 0.18 145);
+  --clr-accent-a14:   oklch(52% 0.18 145 / 0.14); /* 차트 신뢰구간 밴드용 */
+  /* 차트 툴팁 색상 토큰 (Canvas CSS 상속 불가 → getComputedStyle 미러링) */
+  --chart-tooltip-bg:     oklch(20% 0.015 250 / 0.9);
+  --chart-tooltip-title:  oklch(94% 0.008 250);
+  --chart-tooltip-body:   oklch(80% 0.012 250);
+  --chart-tooltip-border: oklch(40% 0.020 250);
+
+  /* 의미 토큰 (--tone-*): buy_timing 5단계 매핑 */
+  /* 급등경보 — danger red ─────── */
+  --tone-surge:       oklch(52% 0.24 22);
+  --tone-surge-lt:    oklch(95% 0.06 22);
+  --tone-surge-bd:    oklch(70% 0.14 22);
+  --tone-surge-text:  oklch(40% 0.20 22);
+
+  /* 상승 — warning orange ─────── */
+  --tone-rise:        oklch(64% 0.20 52);
+  --tone-rise-lt:     oklch(95% 0.05 52);
+  --tone-rise-bd:     oklch(78% 0.11 52);
+  --tone-rise-text:   oklch(50% 0.18 52);
+
+  /* 보합 — neutral blue ───────── */
+  --tone-hold:        oklch(55% 0.14 238);
+  --tone-hold-lt:     oklch(95% 0.04 238);
+  --tone-hold-bd:     oklch(76% 0.09 238);
+  --tone-hold-text:   oklch(44% 0.12 238);
+
+  /* 하락 — positive green ─────── */
+  --tone-drop:        oklch(52% 0.18 145);
+  --tone-drop-lt:     oklch(94% 0.05 145);
+  --tone-drop-bd:     oklch(74% 0.10 145);
+  --tone-drop-text:   oklch(40% 0.16 145);
+
+  /* 급락경보 — opportunity purple */
+  --tone-crash:       oklch(50% 0.22 288);
+  --tone-crash-lt:    oklch(94% 0.05 288);
+  --tone-crash-bd:    oklch(72% 0.12 288);
+  --tone-crash-text:  oklch(38% 0.18 288);
+
+  /* 현재 활성 tone — data-timing 속성으로 덮어씀 */
+  --tone-c:           var(--tone-hold);
+  --tone-c-lt:        var(--tone-hold-lt);
+  --tone-c-bd:        var(--tone-hold-bd);
+  --tone-c-text:      var(--tone-hold-text);
+
+  /* 간격 */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+
+  /* 타이포 */
+  --font:        'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --fs-xs:       0.6875rem;  /* 11px */
+  --fs-sm:       0.8125rem;  /* 13px */
+  --fs-base:     0.9375rem;  /* 15px */
+  --fs-md:       1.0625rem;  /* 17px */
+  --fs-lg:       1.1875rem;  /* 19px */
+  --fs-xl:       1.375rem;   /* 22px */
+  --fs-2xl:      1.75rem;    /* 28px */
+  --fs-3xl:      2.25rem;    /* 36px */
+  --fw-4:        400;
+  --fw-5:        500;
+  --fw-6:        600;
+  --fw-7:        700;
+  --lh-tight:    1.2;
+  --lh-snug:     1.35;
+  --lh-base:     1.55;
+  --lh-loose:    1.7;
+
+  /* 라운드 */
+  --r-sm:   0.375rem;
+  --r-md:   0.625rem;
+  --r-lg:   0.875rem;
+  --r-xl:   1.25rem;
+  --r-2xl:  1.75rem;
+  --r-full: 9999px;
+
+  /* 그림자 */
+  --sh-xs: 0 1px 2px oklch(22% 0.01 250 / 0.06);
+  --sh-sm: 0 2px 8px oklch(22% 0.01 250 / 0.08), 0 1px 2px oklch(22% 0.01 250 / 0.04);
+  --sh-md: 0 4px 16px oklch(22% 0.01 250 / 0.10), 0 1px 4px oklch(22% 0.01 250 / 0.05);
+  --sh-lg: 0 8px 32px oklch(22% 0.01 250 / 0.12), 0 2px 8px oklch(22% 0.01 250 / 0.06);
+
+  /* 모션 */
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast:  120ms;
+  --dur-base:  220ms;
+  --dur-slow:  380ms;
+
+  /* 레이아웃 */
+  --max-w:    1080px;
+  --pad-x:    clamp(var(--sp-4), 4vw, var(--sp-8));
+}
+
+/* ── 2. data-timing 단일 스위치 ─────────────────────── */
+/* 부모에 data-timing 하나만 세팅하면 모든 --tone-c-* 변수가 전환됨 */
+[data-timing="급등경보"] {
+  --tone-c:      var(--tone-surge);
+  --tone-c-lt:   var(--tone-surge-lt);
+  --tone-c-bd:   var(--tone-surge-bd);
+  --tone-c-text: var(--tone-surge-text);
+}
+[data-timing="상승"] {
+  --tone-c:      var(--tone-rise);
+  --tone-c-lt:   var(--tone-rise-lt);
+  --tone-c-bd:   var(--tone-rise-bd);
+  --tone-c-text: var(--tone-rise-text);
+}
+[data-timing="보합"] {
+  --tone-c:      var(--tone-hold);
+  --tone-c-lt:   var(--tone-hold-lt);
+  --tone-c-bd:   var(--tone-hold-bd);
+  --tone-c-text: var(--tone-hold-text);
+}
+[data-timing="하락"] {
+  --tone-c:      var(--tone-drop);
+  --tone-c-lt:   var(--tone-drop-lt);
+  --tone-c-bd:   var(--tone-drop-bd);
+  --tone-c-text: var(--tone-drop-text);
+}
+[data-timing="급락경보"] {
+  --tone-c:      var(--tone-crash);
+  --tone-c-lt:   var(--tone-crash-lt);
+  --tone-c-bd:   var(--tone-crash-bd);
+  --tone-c-text: var(--tone-crash-text);
+}
+
+/* ── 3. 리셋 & 기반 ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; text-size-adjust: 100%; }
+
+body {
+  font-family:      var(--font);
+  font-size:        var(--fs-base);
+  font-weight:      var(--fw-4);
+  line-height:      var(--lh-base);
+  color:            var(--clr-text);
+  background-color: var(--clr-bg);
+  min-height:       100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+strong { font-weight: var(--fw-6); }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+img, svg { display: block; }
+
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding-inline: var(--pad-x);
+}
+
+/* ── 4. HEADER ───────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: oklch(100% 0 0 / 0.92);
+  backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid var(--clr-border);
+  box-shadow: var(--sh-xs);
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  height: 3.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+}
+
+.brand-icon { font-size: 1.6rem; line-height: 1; }
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.brand-name {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-7);
+  color: var(--clr-text);
+  line-height: var(--lh-tight);
+}
+
+.brand-sub {
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+  line-height: 1;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-6);
+  color: var(--clr-accent);
+  background: var(--clr-accent-lt);
+  border: 1px solid var(--clr-accent-lt);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--r-full);
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--clr-accent);
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.updated-info {
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+  white-space: nowrap;
+}
+
+/* ── 5. ANOMALY BANNER ───────────────────────────────── */
+.anomaly-banner {
+  background: var(--tone-surge-lt);
+  border-bottom: 2px solid var(--tone-surge);
+}
+
+.anomaly-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-block: var(--sp-3);
+}
+
+.anomaly-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tone-surge);
+  flex-shrink: 0;
+  animation: anomaly-blink 1s step-end infinite;
+}
+
+@keyframes anomaly-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.anomaly-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.anomaly-text {
+  flex: 1;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-6);
+  color: var(--tone-surge-text);
+}
+
+.anomaly-close {
+  font-size: var(--fs-base);
+  color: var(--tone-surge-text);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-sm);
+  transition: background var(--dur-fast);
+  flex-shrink: 0;
+}
+
+.anomaly-close:hover { background: oklch(0% 0 0 / 0.08); }
+
+/* ── 6. MAIN ─────────────────────────────────────────── */
+.main { padding-block: var(--sp-8) var(--sp-12); }
+
+/* ── 7. ITEM SELECTOR ───────────────────────────────── */
+.item-selector-section { margin-bottom: var(--sp-6); }
+
+.item-tabs-wrap {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* 양쪽 페이드 힌트 */
+  mask-image: linear-gradient(to right,
+    transparent 0,
+    black 2rem,
+    black calc(100% - 2rem),
+    transparent 100%
+  );
+}
+
+.item-tabs-wrap::-webkit-scrollbar { display: none; }
+
+.item-tabs {
+  display: flex;
+  gap: var(--sp-2);
+  padding-block: var(--sp-2);
+  padding-inline: 0.125rem;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* 탭 버튼 */
+.item-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.45rem var(--sp-4);
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--clr-border);
+  background: var(--clr-surface);
+  color: var(--clr-text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-5);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+  box-shadow: var(--sh-xs);
+  user-select: none;
+}
+
+.item-tab:hover {
+  border-color: var(--clr-accent);
+  color: var(--clr-accent-dk);
+  background: var(--clr-accent-lt);
+  box-shadow: var(--sh-sm);
+}
+
+.item-tab[aria-selected="true"] {
+  background: var(--clr-accent);
+  border-color: var(--clr-accent);
+  color: oklch(100% 0 0);
+  box-shadow: var(--sh-sm);
+  font-weight: var(--fw-6);
+}
+
+.item-tab:active { transform: scale(0.97); }
+
+.item-tab-emoji { font-size: 1rem; line-height: 1; }
+
+/* 탭 스켈레톤 */
+.item-tabs-skeleton {
+  display: flex;
+  gap: var(--sp-2);
+  padding-block: var(--sp-2);
+}
+
+.sk-tab {
+  width: 5rem;
+  height: 2rem;
+  border-radius: var(--r-full);
+  background: var(--clr-surface-3);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.sk-tab:nth-child(2) { width: 4rem; animation-delay: 0.1s; }
+.sk-tab:nth-child(3) { width: 4.5rem; animation-delay: 0.2s; }
+.sk-tab:nth-child(4) { width: 3.5rem; animation-delay: 0.3s; }
+.sk-tab:nth-child(5) { width: 5rem; animation-delay: 0.4s; }
+.sk-tab:nth-child(6) { width: 4rem; animation-delay: 0.5s; }
+
+/* ── 8. PREDICTION SECTION ──────────────────────────── */
+.prediction-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/* ── 9. SKELETON ────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.sk-card, .sk-tab {
+  background: linear-gradient(
+    90deg,
+    var(--clr-surface-3) 0%,
+    var(--clr-border) 50%,
+    var(--clr-surface-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-lg);
+}
+
+.pred-skeleton { display: flex; flex-direction: column; gap: var(--sp-5); }
+
+.sk-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+.sk-price-card { height: 17rem; }
+.sk-stat-col { display: flex; flex-direction: column; gap: var(--sp-3); width: 13rem; }
+.sk-stat { height: 5.5rem; }
+.sk-chart { height: 22rem; }
+.sk-table { height: 14rem; }
+
+@media (max-width: 640px) {
+  .sk-row { grid-template-columns: 1fr; }
+  .sk-stat-col { flex-direction: row; width: 100%; }
+  .sk-stat { height: 4rem; flex: 1; }
+}
+
+/* ── 10. OVERVIEW ROW ───────────────────────────────── */
+.overview-row {
+  display: grid;
+  grid-template-columns: 1fr 13rem;
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+/* ── 11. PRICE CARD ─────────────────────────────────── */
+.price-card {
+  background: var(--clr-surface);
+  border: 1.5px solid var(--clr-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--sh-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+/* timing 활성화 시 카드 테두리 변화 */
+.price-card[data-timing]:not([data-timing=""]) {
+  border-color: var(--tone-c-bd);
+  box-shadow: var(--sh-md), 0 0 0 3px oklch(from var(--tone-c) l c h / 0.08);
+}
+
+.price-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-3);
+}
+
+.item-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.item-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-7);
+  line-height: var(--lh-tight);
+  color: var(--clr-text);
+}
+
+.item-category {
+  display: inline-block;
+  margin-top: var(--sp-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-5);
+  color: var(--clr-text-3);
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--r-full);
+}
+
+/* 구매 타이밍 배지 */
+.timing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--r-full);
+  background: var(--tone-c-lt);
+  border: 1.5px solid var(--tone-c-bd);
+  color: var(--tone-c-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-7);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+
+.timing-icon { font-size: 0.9rem; }
+
+/* 가격 본문 */
+.price-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.current-price-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.cprice-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-6);
+  color: var(--clr-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cprice-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.cprice-value {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-7);
+  color: var(--clr-text);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-base);
+}
+
+.cprice-unit {
+  font-size: var(--fs-sm);
+  color: var(--clr-text-3);
+}
+
+/* 점수 미터 */
+.score-meter-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.score-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-6);
+  color: var(--clr-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score-num {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-7);
+  color: var(--tone-c);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-base);
+}
+
+.score-track {
+  height: 8px;
+  background: var(--clr-surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  border: 1px solid var(--clr-border);
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tone-hold) 0%, var(--tone-drop) 100%);
+  border-radius: var(--r-full);
+  transition: width var(--dur-slow) var(--ease-out), background var(--dur-base);
+  position: relative;
+}
+
+.score-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--tone-c);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: var(--sh-sm);
+  transition: background var(--dur-base);
+}
+
+.score-scale-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+}
+
+/* 구매 조언 */
+.timing-advice {
+  font-size: var(--fs-sm);
+  color: var(--tone-c-text);
+  background: var(--tone-c-lt);
+  border-left: 3px solid var(--tone-c);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  line-height: var(--lh-loose);
+  transition:
+    color var(--dur-base),
+    background var(--dur-base),
+    border-color var(--dur-base);
+  min-height: 2.8rem;
+}
+
+.price-card-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  border-top: 1px solid var(--clr-border);
+  padding-top: var(--sp-4);
+}
+
+.mape-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--clr-text-2);
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--r-full);
+}
+
+.anomaly-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-6);
+  color: var(--tone-surge-text);
+  background: var(--tone-surge-lt);
+  border: 1px solid var(--tone-surge-bd);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--r-full);
+}
+
+/* ── 12. STAT CARDS ─────────────────────────────────── */
+.stat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.stat-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  box-shadow: var(--sh-xs);
+  transition: box-shadow var(--dur-fast);
+}
+
+.stat-card:hover { box-shadow: var(--sh-sm); }
+
+.stat-icon { font-size: 1.1rem; line-height: 1; }
+.stat-label { font-size: var(--fs-xs); color: var(--clr-text-3); font-weight: var(--fw-5); }
+.stat-value {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-7);
+  color: var(--clr-text);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-tight);
+}
+.stat-value-sm { font-size: var(--fs-sm); }
+.stat-unit { font-size: var(--fs-xs); color: var(--clr-text-3); }
+
+/* ── 13. CHART CARD ─────────────────────────────────── */
+.chart-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--sh-sm);
+}
+
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  flex-wrap: wrap;
+}
+
+.chart-title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-6);
+  color: var(--clr-text);
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+}
+
+.legend-line-sw {
+  display: inline-block;
+  width: 1.5rem;
+  height: 2.5px;
+  background: var(--clr-accent);
+  border-radius: var(--r-full);
+}
+
+.legend-band-sw {
+  display: inline-block;
+  width: 1.5rem;
+  height: 0.5rem;
+  background: oklch(52% 0.18 145 / 0.2);
+  border: 1px solid oklch(52% 0.18 145 / 0.35);
+  border-radius: var(--r-sm);
+}
+
+.chart-wrap {
+  position: relative;
+  height: 22rem;
+}
+
+.chart-wrap canvas { width: 100% !important; }
+
+/* ── 14. TABLE CARD ─────────────────────────────────── */
+.table-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--sh-sm);
+}
+
+.table-title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-6);
+  color: var(--clr-text);
+  margin-bottom: var(--sp-5);
+}
+
+.table-scroll { overflow-x: auto; }
+
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.price-table th,
+.price-table td {
+  padding: var(--sp-3) var(--sp-4);
+  text-align: right;
+  border-bottom: 1px solid var(--clr-border);
+  white-space: nowrap;
+}
+
+.price-table th:first-child,
+.price-table td:first-child { text-align: left; }
+
+.price-table thead th {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-6);
+  color: var(--clr-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--clr-surface-2);
+}
+
+.price-table thead th:first-child { border-radius: var(--r-md) 0 0 0; }
+.price-table thead th:last-child  { border-radius: 0 var(--r-md) 0 0; }
+
+.price-table tbody tr {
+  transition: background var(--dur-fast);
+}
+.price-table tbody tr:hover { background: var(--clr-surface-2); }
+
+.price-table tbody tr:last-child td { border-bottom: none; }
+
+/* 전일比 색상 */
+.td-rise { color: var(--tone-surge-text); font-weight: var(--fw-5); }
+.td-drop { color: var(--tone-drop-text); font-weight: var(--fw-5); }
+.td-flat { color: var(--clr-text-3); }
+
+/* ── 15. ERROR STATE ────────────────────────────────── */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-12) var(--sp-6);
+  text-align: center;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-sm);
+}
+
+.error-emoji { font-size: 3rem; }
+.error-title { font-size: var(--fs-xl); font-weight: var(--fw-7); }
+.error-desc  { font-size: var(--fs-sm); color: var(--clr-text-2); max-width: 28rem; }
+
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-6);
+  background: var(--clr-accent);
+  color: white;
+  border-radius: var(--r-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-6);
+  box-shadow: var(--sh-sm);
+  transition:
+    background var(--dur-fast),
+    transform var(--dur-fast),
+    box-shadow var(--dur-fast);
+}
+
+.retry-btn:hover {
+  background: var(--clr-accent-dk);
+  box-shadow: var(--sh-md);
+}
+
+.retry-btn:active { transform: scale(0.97); }
+
+/* ── 16. INFO SECTION ───────────────────────────────── */
+.info-section { margin-top: var(--sp-8); }
+
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+
+.info-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  box-shadow: var(--sh-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.info-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-7);
+  color: var(--clr-text);
+}
+
+.info-card p {
+  font-size: var(--fs-sm);
+  color: var(--clr-text-2);
+  line-height: var(--lh-loose);
+}
+
+/* 타이밍 가이드 리스트 */
+.timing-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.timing-guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--clr-text-2);
+  line-height: var(--lh-base);
+}
+
+/* 가이드 스와치: 해당 timing 색상 자동 적용 */
+.guide-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tone-c);
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+  border: 1.5px solid var(--tone-c-bd);
+  transition: background var(--dur-base);
+}
+
+/* ── 17. FOOTER ─────────────────────────────────────── */
+.site-footer {
+  margin-top: var(--sp-12);
+  padding-block: var(--sp-6);
+  border-top: 1px solid var(--clr-border);
+  background: var(--clr-surface);
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-3);
+}
+
+.footer-brand {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-6);
+  color: var(--clr-text);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+}
+
+.footer-disclaimer {
+  font-size: var(--fs-xs);
+  color: var(--clr-text-3);
+  line-height: var(--lh-base);
+}
+
+/* ── 18. RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .overview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1 1 calc(50% - var(--sp-2));
+  }
+
+  .info-row { grid-template-columns: 1fr; }
+
+  .chart-wrap { height: 18rem; }
+
+  .brand-sub { display: none; }
+
+  .sk-row { grid-template-columns: 1fr; }
+  .sk-stat-col { flex-direction: row; flex-wrap: wrap; }
+  .sk-stat { flex: 1 1 calc(50% - var(--sp-2)); }
+}
+
+@media (max-width: 480px) {
+  .cprice-value { font-size: var(--fs-2xl); }
+  .price-card-header { flex-direction: column; gap: var(--sp-3); }
+  .timing-badge { align-self: flex-start; }
+  .chart-wrap { height: 15rem; }
+  .footer-row { flex-direction: column; align-items: flex-start; }
+
+  .stat-card { flex: 1 1 100%; }
+}
+
+/* ── 19. 접근성 — 포커스 가시성 ────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--clr-accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* ── 20. 다크모드 (prefers-color-scheme) ──────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --clr-bg:        oklch(16% 0.010 250);
+    --clr-surface:   oklch(20% 0.012 250);
+    --clr-surface-2: oklch(24% 0.012 250);
+    --clr-surface-3: oklch(28% 0.014 250);
+    --clr-border:    oklch(32% 0.015 250);
+    --clr-border-2:  oklch(38% 0.018 250);
+    --clr-text:      oklch(94% 0.008 250);
+    --clr-text-2:    oklch(76% 0.012 250);
+    --clr-text-3:    oklch(58% 0.014 250);
+    --clr-accent-lt: oklch(25% 0.08 145);
+    --clr-accent-dk: oklch(72% 0.18 145);
+
+    --tone-surge-lt: oklch(22% 0.08 22);
+    --tone-rise-lt:  oklch(22% 0.07 52);
+    --tone-hold-lt:  oklch(22% 0.06 238);
+    --tone-drop-lt:  oklch(22% 0.07 145);
+    --tone-crash-lt: oklch(22% 0.07 288);
+
+    --tone-surge-text: oklch(82% 0.18 22);
+    --tone-rise-text:  oklch(82% 0.16 52);
+    --tone-hold-text:  oklch(78% 0.12 238);
+    --tone-drop-text:  oklch(80% 0.16 145);
+    --tone-crash-text: oklch(80% 0.18 288);
+  }
+
+  .site-header {
+    background: oklch(20% 0.012 250 / 0.92);
+  }
+}
+
+/* ── 21. 모션 감소 ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
